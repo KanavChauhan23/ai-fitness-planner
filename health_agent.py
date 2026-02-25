@@ -239,9 +239,37 @@ label, .stSelectbox label, .stTextInput label, .stMultiSelect label {
 .stExpander { background: var(--bg-card) !important; border: 1px solid rgba(255,153,51,0.15) !important; border-radius: 12px !important; }
 div[data-testid="stExpander"] div[role="button"] p { font-family: 'Syne', sans-serif !important; font-size: 0.8rem !important; font-weight: 700 !important; }
 
-/* Multiselect tags */
-[data-baseweb="tag"] { background: rgba(255,153,51,0.15) !important; border-color: rgba(255,153,51,0.35) !important; }
+/* Multiselect tags — force dark background, no white */
+[data-baseweb="tag"] {
+    background: rgba(255,153,51,0.14) !important;
+    border: 1px solid rgba(255,153,51,0.35) !important;
+    border-radius: 6px !important;
+}
 [data-baseweb="tag"] span { color: #FF9933 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.68rem !important; }
+[data-baseweb="tag"] button svg { fill: #FF9933 !important; }
+
+/* Multiselect container inner background */
+[data-baseweb="select"] > div { background: rgba(15,20,40,0.9) !important; }
+.stMultiSelect [data-baseweb="select"] > div { background: rgba(15,20,40,0.9) !important; }
+[data-testid="stMultiSelect"] div { background-color: transparent !important; }
+[data-baseweb="select"] [data-baseweb="tag"] { background: rgba(255,153,51,0.14) !important; }
+
+/* Form submit button (ASK →) — must override separately */
+button[kind="formSubmit"], button[data-testid="baseButton-secondary"] {
+    background: linear-gradient(135deg, rgba(255,153,51,0.22), rgba(255,215,0,0.14)) !important;
+    border: 1px solid rgba(255,153,51,0.55) !important;
+    color: #FF9933 !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 0.76rem !important; font-weight: 700 !important;
+    letter-spacing: 0.14em !important; border-radius: 10px !important;
+}
+button[kind="formSubmit"]:hover {
+    background: linear-gradient(135deg, rgba(255,153,51,0.35), rgba(255,215,0,0.25)) !important;
+    box-shadow: 0 0 18px rgba(255,153,51,0.3) !important;
+    color: #FFFFFF !important;
+}
+/* Force ALL buttons in forms to show orange text */
+div[data-testid="stForm"] button { color: #FF9933 !important; background: rgba(255,153,51,0.12) !important; border: 1px solid rgba(255,153,51,0.45) !important; }
 
 hr { border-color: rgba(255,153,51,0.1) !important; }
 div[data-testid="stForm"] { border: none !important; padding: 0 !important; }
