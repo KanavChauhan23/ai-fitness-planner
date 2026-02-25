@@ -1,2 +1,2 @@
 streamlit==1.40.2
-agno>=2.2.10
+openai>=1.0.0
