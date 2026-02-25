@@ -232,16 +232,14 @@ with st.sidebar:
             AI HEALTH INTELLIGENCE v2.0</div>
     </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;letter-spacing:0.2em;color:#6b7280;text-transform:uppercase;margin-bottom:0.5rem;">🔑 Grok API Key</div>', unsafe_allow_html=True)
-    grok_api_key = st.text_input("", type="password", placeholder="xai-••••••••••••••••", label_visibility="collapsed")
-
-    if not grok_api_key:
+    # API key loaded from Streamlit secrets
+    grok_api_key = st.secrets.get("GROK_API_KEY", "")
+    if grok_api_key:
+        st.markdown('<div style="background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);border-radius:8px;padding:0.65rem;font-size:0.78rem;color:#39ff14;margin:0.5rem 0;">✓ Systems Online</div>', unsafe_allow_html=True)
+    else:
         st.markdown("""<div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.3);
             border-radius:8px;padding:0.75rem;font-size:0.78rem;color:#ff6b00;margin:0.5rem 0;">
-            ⚠️ Enter your Grok API key to activate</div>""", unsafe_allow_html=True)
-        st.markdown("[→ Get Grok API Key](https://console.x.ai)")
-    else:
-        st.markdown('<div style="background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);border-radius:8px;padding:0.65rem;font-size:0.78rem;color:#39ff14;margin:0.5rem 0;">✓ Systems Online</div>', unsafe_allow_html=True)
+            ⚠️ GROK_API_KEY not found in Streamlit secrets</div>""", unsafe_allow_html=True)
 
     st.divider()
     st.markdown('<div style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;letter-spacing:0.2em;color:#6b7280;text-transform:uppercase;margin-bottom:0.75rem;">⚙️ Model Config</div>', unsafe_allow_html=True)
@@ -269,7 +267,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if not grok_api_key:
-    st.markdown('<div style="text-align:center;padding:3rem 1rem;color:#4b5563;font-size:0.9rem;">Enter your Grok API key in the sidebar to activate the AI systems.</div>', unsafe_allow_html=True)
+    st.error("⚠️ GROK_API_KEY not found. Please add it to your Streamlit Cloud secrets: Settings → Secrets → add `GROK_API_KEY = 'xai-...'`")
     st.stop()
 
 # Init Grok client
