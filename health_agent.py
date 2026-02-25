@@ -1,491 +1,533 @@
 import streamlit as st
 from openai import OpenAI
 
-# ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="APEX · AI Health Intelligence",
+    page_title="APEX · Indian Health Intelligence",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ─── Custom CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    --neon-cyan: #00f5ff;
-    --neon-green: #39ff14;
-    --neon-purple: #bf00ff;
-    --neon-orange: #ff6b00;
-    --bg-deep: #010409;
-    --bg-card: rgba(13, 17, 28, 0.95);
-    --border-glow: rgba(0, 245, 255, 0.25);
-    --text-primary: #e8eaf0;
-    --text-muted: #6b7280;
+    --saffron: #FF9933;
+    --saffron-dim: rgba(255,153,51,0.15);
+    --green-india: #138808;
+    --green-neon: #00e676;
+    --gold: #FFD700;
+    --teal: #00BCD4;
+    --bg-base: #050810;
+    --bg-card: rgba(10,15,30,0.97);
+    --border-saffron: rgba(255,153,51,0.3);
+    --border-teal: rgba(0,188,212,0.25);
+    --text-bright: #F0F4FF;
+    --text-mid: #8892A4;
+    --text-dim: #3D4A5C;
 }
 
+*, *::before, *::after { box-sizing: border-box; }
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-.main .block-container { padding: 1.5rem 2rem 3rem; max-width: 1400px; }
-.stApp { background: var(--bg-deep); color: var(--text-primary); }
+.main .block-container { padding: 1.25rem 2rem 4rem; max-width: 1380px; }
+.stApp { background: var(--bg-base); color: var(--text-bright); }
 .stApp::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,245,255,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(191,0,255,0.05) 0%, transparent 60%),
-        repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(0,245,255,0.015) 80px, rgba(0,245,255,0.015) 81px),
-        repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(0,245,255,0.015) 80px, rgba(0,245,255,0.015) 81px);
-    pointer-events: none;
+        radial-gradient(ellipse 70% 45% at 10% 0%, rgba(255,153,51,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 40% at 90% 100%, rgba(0,188,212,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,215,0,0.03) 0%, transparent 60%);
 }
-
 #MainMenu, footer, header { visibility: hidden; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(255,153,51,0.3); border-radius: 4px; }
 
-.apex-hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
-.apex-hero .tag {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 0.3em; color: var(--neon-cyan);
-    border: 1px solid rgba(0,245,255,0.35); padding: 0.25rem 0.9rem;
-    border-radius: 100px; margin-bottom: 1rem; background: rgba(0,245,255,0.04);
+/* Sidebar */
+section[data-testid="stSidebar"] { background: rgba(5,8,20,0.99) !important; border-right: 1px solid rgba(255,153,51,0.12) !important; }
+
+/* Hero */
+.hero-wrap { padding: 2rem 1rem 1rem; text-align: center; }
+.hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.35em;
+    color: var(--saffron); border: 1px solid var(--border-saffron);
+    padding: 0.22rem 0.85rem; border-radius: 100px; background: var(--saffron-dim);
+    margin-bottom: 1rem; text-transform: uppercase;
 }
-.apex-hero h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: 0.05em;
-    background: linear-gradient(135deg, #ffffff 0%, var(--neon-cyan) 50%, var(--neon-purple) 100%);
+.hero-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2.2rem, 5vw, 3.8rem); line-height: 1.05; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, var(--saffron) 40%, var(--gold) 70%, var(--teal) 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin: 0 0 0.5rem; line-height: 1.1;
+    margin-bottom: 0.6rem;
 }
-.apex-hero p { color: var(--text-muted); font-size: 1rem; font-weight: 300; max-width: 550px; margin: 0 auto; }
-.apex-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-    margin: 1.5rem 0; opacity: 0.4;
-}
+.hero-sub { color: var(--text-mid); font-size: 0.92rem; font-weight: 300; max-width: 520px; margin: 0 auto 1.5rem; line-height: 1.6; }
+.tricolor-line { height: 3px; border-radius: 100px; margin: 0 auto 1.5rem; width: 120px; background: linear-gradient(90deg, #FF9933 33%, #ffffff 33% 66%, #138808 66%); }
 
-.metric-card {
-    background: var(--bg-card); border: 1px solid var(--border-glow);
-    border-radius: 12px; padding: 1.25rem 1.5rem; position: relative; overflow: hidden;
-}
-.metric-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-}
-.metric-card .label {
-    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
-    letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;
-}
-.metric-card .value {
-    font-family: 'Orbitron', sans-serif; font-size: 1.8rem;
-    font-weight: 700; color: var(--neon-cyan); line-height: 1;
-}
-.metric-card .unit { font-size: 0.85rem; color: var(--text-muted); margin-left: 0.3rem; }
-.metric-card .sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem; }
+/* Section header */
+.sec-head { display: flex; align-items: center; gap: 0.7rem; margin: 2rem 0 1.1rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(255,153,51,0.1); }
+.sec-head-icon { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, rgba(255,153,51,0.18), rgba(0,188,212,0.12)); border: 1px solid var(--border-saffron); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+.sec-head-title { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.18em; color: var(--text-bright); text-transform: uppercase; }
+.sec-head-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,153,51,0.2), transparent); }
 
-.badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 0.2rem 0.65rem; border-radius: 100px; font-weight: 600; letter-spacing: 0.05em; }
-.badge-green  { background: rgba(57,255,20,0.12);  color: #39ff14; border: 1px solid rgba(57,255,20,0.35); }
-.badge-cyan   { background: rgba(0,245,255,0.12);  color: #00f5ff; border: 1px solid rgba(0,245,255,0.3); }
-.badge-orange { background: rgba(255,107,0,0.12);  color: #ff6b00; border: 1px solid rgba(255,107,0,0.35); }
-.badge-purple { background: rgba(191,0,255,0.12);  color: #d966ff; border: 1px solid rgba(191,0,255,0.35); }
+/* Input cards */
+.input-group { background: var(--bg-card); border: 1px solid rgba(255,153,51,0.12); border-radius: 14px; padding: 1.5rem; position: relative; overflow: hidden; }
+.input-group::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--saffron), var(--gold), var(--teal)); opacity: 0.6; }
 
-.section-header { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 1rem; }
-.section-header .icon {
-    width: 36px; height: 36px; border-radius: 8px;
-    background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
-    display: flex; align-items: center; justify-content: center; font-size: 1rem;
+/* Metric cards */
+.m-card { background: var(--bg-card); border-radius: 14px; padding: 1.1rem 1.2rem; position: relative; overflow: hidden; border: 1px solid rgba(255,153,51,0.12); }
+.m-card:hover { border-color: rgba(255,153,51,0.35); }
+.m-card-glow { position: absolute; top: -30px; right: -30px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.12; filter: blur(20px); }
+.m-card-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.22em; color: var(--text-mid); text-transform: uppercase; margin-bottom: 0.5rem; }
+.m-card-value { font-family: 'Syne', sans-serif; font-size: 1.85rem; font-weight: 800; line-height: 1; display: flex; align-items: baseline; gap: 0.3rem; }
+.m-card-unit { font-size: 0.78rem; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+.m-card-sub { font-size: 0.75rem; color: var(--text-mid); margin-top: 0.4rem; }
+
+/* Chips/badges */
+.chip { display: inline-flex; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; padding: 0.18rem 0.6rem; border-radius: 100px; font-weight: 500; letter-spacing: 0.06em; white-space: nowrap; }
+.chip-saffron { background: rgba(255,153,51,0.12); color: #FF9933; border: 1px solid rgba(255,153,51,0.3); }
+.chip-green   { background: rgba(0,230,118,0.1);  color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
+.chip-teal    { background: rgba(0,188,212,0.1);  color: #00BCD4; border: 1px solid rgba(0,188,212,0.25); }
+.chip-gold    { background: rgba(255,215,0,0.1);  color: #FFD700; border: 1px solid rgba(255,215,0,0.3); }
+.chip-red     { background: rgba(255,82,82,0.1);  color: #ff5252; border: 1px solid rgba(255,82,82,0.3); }
+
+/* Macro bars */
+.macro-bar-wrap { margin: 0.55rem 0; }
+.macro-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; }
+.macro-bar-name { font-size: 0.78rem; color: var(--text-bright); font-weight: 500; }
+.macro-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-mid); }
+.macro-bar-track { height: 5px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; }
+.macro-bar-fill { height: 100%; border-radius: 100px; }
+
+/* Plan blocks */
+.plan-block { background: var(--bg-card); border-radius: 16px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; position: relative; overflow: hidden; border: 1px solid rgba(255,153,51,0.15); }
+.plan-block::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.plan-block.orange::before { background: linear-gradient(90deg, transparent, #FF9933, #FFD700, transparent); }
+.plan-block.teal-b::before { background: linear-gradient(90deg, transparent, #00BCD4, transparent); }
+.plan-block-title { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem; }
+.plan-block.orange .plan-block-title { color: #FF9933; }
+.plan-block.teal-b .plan-block-title { color: #00BCD4; }
+
+/* Chat */
+.chat-bubble { padding: 0.9rem 1.1rem; border-radius: 12px; margin-bottom: 0.8rem; line-height: 1.65; font-size: 0.88rem; }
+.chat-user { background: rgba(255,153,51,0.07); border-left: 3px solid #FF9933; }
+.chat-ai   { background: rgba(0,188,212,0.06);  border-left: 3px solid #00BCD4; }
+.chat-lbl  { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em; opacity: 0.55; margin-bottom: 0.4rem; text-transform: uppercase; }
+
+/* Sidebar */
+.sb-logo { text-align: center; padding: 1.5rem 1rem 1rem; border-bottom: 1px solid rgba(255,153,51,0.1); margin-bottom: 1.25rem; }
+.sb-logo-name { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.15em; background: linear-gradient(135deg, #FF9933, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.sb-logo-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.52rem; letter-spacing: 0.3em; color: var(--text-dim); margin-top: 0.2rem; }
+.sb-stat { padding: 0.7rem 1rem; background: rgba(255,153,51,0.05); border: 1px solid rgba(255,153,51,0.1); border-radius: 10px; margin-bottom: 0.55rem; display: flex; align-items: center; justify-content: space-between; }
+.sb-stat-label { font-size: 0.75rem; color: var(--text-mid); }
+.sb-stat-val   { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #FF9933; font-weight: 600; }
+.sb-tip { background: rgba(0,188,212,0.05); border: 1px solid rgba(0,188,212,0.15); border-radius: 10px; padding: 0.75rem 0.9rem; margin-bottom: 0.55rem; font-size: 0.77rem; color: var(--text-mid); line-height: 1.5; }
+.sb-tip strong { color: #00BCD4; display: block; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.2rem; font-family: 'JetBrains Mono', monospace; }
+.sb-section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--text-dim); text-transform: uppercase; margin: 1.1rem 0 0.6rem; padding: 0 1rem; }
+
+/* Streamlit overrides */
+.stTextInput > div > div > input {
+    background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,153,51,0.2) !important;
+    border-radius: 10px !important; color: #F0F4FF !important;
+    font-family: 'DM Sans', sans-serif !important; font-size: 0.95rem !important;
+    padding: 0.6rem 0.9rem !important;
 }
-.section-header h2 {
-    font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700;
-    letter-spacing: 0.12em; color: var(--text-primary); text-transform: uppercase; margin: 0;
-}
-
-.plan-card {
-    background: var(--bg-card); border: 1px solid var(--border-glow);
-    border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; position: relative;
-}
-.plan-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.plan-card.green  { border-color: rgba(57,255,20,0.25); }
-.plan-card.green::before  { background: linear-gradient(90deg, transparent, #39ff14, transparent); }
-.plan-card.purple { border-color: rgba(191,0,255,0.25); }
-.plan-card.purple::before { background: linear-gradient(90deg, transparent, #bf00ff, transparent); }
-.plan-card h3 { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 1rem; }
-.plan-card.green h3  { color: #39ff14; }
-.plan-card.purple h3 { color: #d966ff; }
-
-.prog-wrap { margin: 0.5rem 0; }
-.prog-label { display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 0.78rem; color: var(--text-muted); }
-.prog-bar { height: 6px; background: rgba(255,255,255,0.07); border-radius: 100px; overflow: hidden; }
-.prog-fill { height: 100%; border-radius: 100px; }
-
-.chat-msg { padding: 0.85rem 1.1rem; border-radius: 10px; margin-bottom: 0.75rem; font-size: 0.9rem; line-height: 1.6; }
-.chat-user { background: rgba(0,245,255,0.07); border-left: 3px solid #00f5ff; }
-.chat-ai   { background: rgba(191,0,255,0.07); border-left: 3px solid #bf00ff; }
-.chat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; margin-bottom: 0.4rem; opacity: 0.6; text-transform: uppercase; }
-
-.stTextInput > div > div > input,
-.stNumberInput > div > div > input,
-.stSelectbox > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(0,245,255,0.2) !important;
-    border-radius: 8px !important; color: var(--text-primary) !important;
-}
-.stTextInput > div > div > input:focus { border-color: rgba(0,245,255,0.55) !important; box-shadow: 0 0 0 2px rgba(0,245,255,0.12) !important; }
+.stTextInput > div > div > input:focus { border-color: rgba(255,153,51,0.55) !important; box-shadow: 0 0 0 3px rgba(255,153,51,0.1) !important; }
+.stSelectbox > div > div, .stMultiSelect > div > div { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,153,51,0.2) !important; border-radius: 10px !important; color: #F0F4FF !important; }
 .stButton > button {
-    width: 100%;
-    background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(191,0,255,0.15)) !important;
-    border: 1px solid rgba(0,245,255,0.4) !important; color: #00f5ff !important;
-    font-family: 'Orbitron', sans-serif !important; font-size: 0.75rem !important;
-    font-weight: 700 !important; letter-spacing: 0.15em !important;
-    border-radius: 8px !important; padding: 0.65rem 1rem !important; transition: all 0.3s !important;
+    background: linear-gradient(135deg, rgba(255,153,51,0.18), rgba(255,215,0,0.12)) !important;
+    border: 1px solid rgba(255,153,51,0.45) !important; color: #FF9933 !important;
+    font-family: 'Syne', sans-serif !important; font-size: 0.78rem !important; font-weight: 700 !important;
+    letter-spacing: 0.15em !important; border-radius: 10px !important; padding: 0.65rem 1.2rem !important;
+    transition: all 0.25s ease !important; width: 100% !important;
 }
-.stButton > button:hover {
-    background: linear-gradient(135deg, rgba(0,245,255,0.28), rgba(191,0,255,0.28)) !important;
-    border-color: #00f5ff !important; box-shadow: 0 0 20px rgba(0,245,255,0.2) !important;
-}
-.stSidebar { background: rgba(8,10,18,0.98) !important; border-right: 1px solid rgba(0,245,255,0.1) !important; }
-label, .stSelectbox label, .stNumberInput label, .stTextInput label {
-    color: #9ca3af !important; font-size: 0.8rem !important;
-    font-family: 'JetBrains Mono', monospace !important; letter-spacing: 0.08em !important;
-}
-.stTabs [data-baseweb="tab-list"] { background: rgba(255,255,255,0.03) !important; border-radius: 10px !important; padding: 4px !important; }
-.stTabs [data-baseweb="tab"] { border-radius: 8px !important; font-family: 'DM Sans', sans-serif !important; font-size: 0.82rem !important; color: var(--text-muted) !important; }
-.stTabs [aria-selected="true"] { background: rgba(0,245,255,0.12) !important; color: #00f5ff !important; }
-hr { border-color: rgba(0,245,255,0.12) !important; }
+.stButton > button:hover { background: linear-gradient(135deg, rgba(255,153,51,0.32), rgba(255,215,0,0.22)) !important; box-shadow: 0 0 24px rgba(255,153,51,0.25) !important; transform: translateY(-1px) !important; }
+label, .stSelectbox label, .stTextInput label, .stMultiSelect label { color: #8892A4 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.65rem !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; }
+.stTabs [data-baseweb="tab-list"] { background: rgba(255,255,255,0.025) !important; border-radius: 12px !important; padding: 4px !important; gap: 3px !important; }
+.stTabs [data-baseweb="tab"] { border-radius: 9px !important; font-family: 'DM Sans', sans-serif !important; font-size: 0.82rem !important; font-weight: 500 !important; color: #8892A4 !important; padding: 0.5rem 1.1rem !important; }
+.stTabs [aria-selected="true"] { background: rgba(255,153,51,0.14) !important; color: #FF9933 !important; }
+.stMetric { background: rgba(255,153,51,0.04); border: 1px solid rgba(255,153,51,0.1); border-radius: 10px; padding: 0.75rem 1rem !important; }
+[data-testid="stMetricValue"] { font-family: 'Syne', sans-serif !important; color: #FF9933 !important; font-weight: 700 !important; }
+[data-testid="stMetricLabel"] { font-family: 'JetBrains Mono', monospace !important; font-size: 0.65rem !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; color: #8892A4 !important; }
+.stExpander { background: var(--bg-card) !important; border: 1px solid rgba(255,153,51,0.15) !important; border-radius: 12px !important; }
+div[data-testid="stExpander"] div[role="button"] p { font-family: 'Syne', sans-serif !important; font-size: 0.82rem !important; font-weight: 700 !important; }
+[data-baseweb="tag"] { background: rgba(255,153,51,0.15) !important; border-color: rgba(255,153,51,0.3) !important; }
+hr { border-color: rgba(255,153,51,0.1) !important; }
+div[data-testid="stForm"] { border: none !important; padding: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─── Helper Functions ──────────────────────────────────────────────────────────
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 def calculate_bmi(weight_kg, height_cm):
-    if height_cm <= 0:
-        return 0.0, "N/A", "cyan"
+    if height_cm <= 0: return 0.0, "N/A", "saffron"
     bmi = weight_kg / ((height_cm / 100) ** 2)
-    if bmi < 18.5:   return round(bmi, 1), "Underweight", "orange"
-    elif bmi < 25:   return round(bmi, 1), "Normal", "green"
-    elif bmi < 30:   return round(bmi, 1), "Overweight", "orange"
-    else:            return round(bmi, 1), "Obese", "purple"
+    if bmi < 18.5:   return round(bmi,1), "Underweight", "teal"
+    elif bmi < 23:   return round(bmi,1), "Healthy ✓", "green"
+    elif bmi < 27.5: return round(bmi,1), "Overweight", "saffron"
+    else:            return round(bmi,1), "Obese", "red"
 
-def calculate_tdee(weight_kg, height_cm, age, sex, activity_level):
-    if sex == "Male":
-        bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + 5
-    else:
-        bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
-    multipliers = {"Sedentary": 1.2, "Lightly Active": 1.375, "Moderately Active": 1.55, "Very Active": 1.725, "Extremely Active": 1.9}
-    tdee = bmr * multipliers.get(activity_level, 1.55)
-    return round(bmr), round(tdee)
+def calculate_tdee(weight_kg, height_cm, age, sex, activity):
+    bmr = (10*weight_kg + 6.25*height_cm - 5*age + 5) if sex == "Male" else (10*weight_kg + 6.25*height_cm - 5*age - 161)
+    m = {"Sedentary (Desk job)": 1.2, "Lightly Active (Walk 1-3 days)": 1.375,
+         "Moderately Active (Exercise 3-5 days)": 1.55, "Very Active (Hard exercise 6-7 days)": 1.725,
+         "Athlete / Physical Labour": 1.9}
+    return round(bmr), round(bmr * m.get(activity, 1.55))
 
-def calculate_ideal_weight(height_cm, sex):
+def ideal_weight(height_cm, sex):
     if height_cm < 152.4: return 50 if sex == "Male" else 45.5
-    extra_inches = (height_cm - 152.4) / 2.54
-    return round(50 + 2.3 * extra_inches, 1) if sex == "Male" else round(45.5 + 2.3 * extra_inches, 1)
+    extra = (height_cm - 152.4) / 2.54
+    return round(50 + 2.3*extra, 1) if sex == "Male" else round(45.5 + 2.3*extra, 1)
 
 def macro_split(tdee, goal):
-    if goal == "Lose Weight":
-        cals = tdee - 400; p, f, c = 0.35, 0.30, 0.35
-    elif goal == "Gain Muscle":
-        cals = tdee + 350; p, f, c = 0.30, 0.25, 0.45
-    elif goal == "Strength Training":
-        cals = tdee + 200; p, f, c = 0.32, 0.28, 0.40
-    else:
-        cals = tdee; p, f, c = 0.25, 0.30, 0.45
-    return {"calories": round(cals), "protein": round(cals*p/4), "fat": round(cals*f/9), "carbs": round(cals*c/4)}
+    if goal == "Weight Loss":            cals, p, f, c = tdee-400, 0.35, 0.30, 0.35
+    elif goal == "Muscle Gain":          cals, p, f, c = tdee+350, 0.30, 0.25, 0.45
+    elif goal == "Strength Training":    cals, p, f, c = tdee+200, 0.32, 0.28, 0.40
+    elif goal == "Athletic Performance": cals, p, f, c = tdee+300, 0.28, 0.25, 0.47
+    else:                                cals, p, f, c = tdee,     0.25, 0.30, 0.45
+    return {"cals": round(cals), "protein": round(cals*p/4), "fat": round(cals*f/9), "carbs": round(cals*c/4)}
 
-def prog_bar(label, value, max_val, color):
-    pct = min(100, round(value / max_val * 100))
-    return f"""<div class="prog-wrap">
-        <div class="prog-label"><span>{label}</span><span>{value}g</span></div>
-        <div class="prog-bar"><div class="prog-fill" style="width:{pct}%;background:{color};"></div></div>
+def macrobar(label, val, max_v, color):
+    pct = min(100, round(val/max_v*100))
+    return f"""<div class="macro-bar-wrap">
+    <div class="macro-bar-top"><span class="macro-bar-name">{label}</span><span class="macro-bar-val">{val}g</span></div>
+    <div class="macro-bar-track"><div class="macro-bar-fill" style="width:{pct}%;background:{color};"></div></div>
     </div>"""
 
-def badge(text, color):
-    return f'<span class="badge badge-{color}">{text}</span>'
+def chip(text, kind="saffron"):
+    return f'<span class="chip chip-{kind}">{text}</span>'
 
-def ask_grok(client, model, system_prompt, user_message):
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_message}
-        ],
-        max_tokens=2048,
-        temperature=0.7
+def safe_float(val, default):
+    try: return float(str(val).strip())
+    except: return default
+
+def ask_groq(client, system_msg, user_msg):
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role":"system","content":system_msg},{"role":"user","content":user_msg}],
+        max_tokens=2500, temperature=0.7
     )
-    return response.choices[0].message.content
+    return resp.choices[0].message.content
 
 
 # ─── Session State ─────────────────────────────────────────────────────────────
-for k, v in {"dietary_plan": None, "fitness_plan": None, "qa_pairs": [], "plans_generated": False}.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+for k, v in {"diet_plan":None,"fit_plan":None,"qa":[],"generated":False}.items():
+    if k not in st.session_state: st.session_state[k] = v
+
+groq_key = st.secrets.get("GROQ_API_KEY", "")
 
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div style="text-align:center;margin-bottom:1.5rem;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;
-                    background:linear-gradient(135deg,#00f5ff,#bf00ff);
-                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                    letter-spacing:0.2em;">⚡ APEX</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:#4b5563;letter-spacing:0.3em;margin-top:0.2rem;">
-            AI HEALTH INTELLIGENCE v2.0</div>
+    <div class="sb-logo">
+        <div style="font-size:1.8rem;margin-bottom:0.3rem;">🏋️</div>
+        <div class="sb-logo-name">⚡ APEX</div>
+        <div class="sb-logo-sub">INDIAN HEALTH INTELLIGENCE</div>
+        <div style="height:3px;border-radius:100px;background:linear-gradient(90deg,#FF9933,#fff,#138808);margin:0.75rem auto 0;width:80px;"></div>
     </div>""", unsafe_allow_html=True)
 
-    # API key loaded from Streamlit secrets
-    grok_api_key = st.secrets.get("GROQ_API_KEY", "")
-    if grok_api_key:
-        st.markdown('<div style="background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);border-radius:8px;padding:0.65rem;font-size:0.78rem;color:#39ff14;margin:0.5rem 0;">✓ Systems Online</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section-label">System Status</div>', unsafe_allow_html=True)
+    if groq_key:
+        st.markdown('<div class="sb-stat"><span class="sb-stat-label">🟢 AI Engine</span><span class="sb-stat-val">ONLINE</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sb-stat"><span class="sb-stat-label">⚡ Model</span><span class="sb-stat-val">LLaMA 3.3 70B</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sb-stat"><span class="sb-stat-label">🇮🇳 Diet Mode</span><span class="sb-stat-val">INDIAN</span></div>', unsafe_allow_html=True)
     else:
-        st.markdown("""<div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.3);
-            border-radius:8px;padding:0.75rem;font-size:0.78rem;color:#ff6b00;margin:0.5rem 0;">
-            ⚠️ GROQ_API_KEY not found in Streamlit secrets</div>""", unsafe_allow_html=True)
+        st.markdown('<div class="sb-stat" style="border-color:rgba(255,82,82,0.3)"><span class="sb-stat-label">🔴 AI Engine</span><span class="sb-stat-val" style="color:#ff5252">OFFLINE</span></div>', unsafe_allow_html=True)
 
-    st.divider()
-    st.markdown('<div style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;letter-spacing:0.2em;color:#6b7280;text-transform:uppercase;margin-bottom:0.75rem;">⚙️ Model Config</div>', unsafe_allow_html=True)
-    model_choice = st.selectbox("Model", ["llama-3.3-70b-versatile", "grok-3", "grok-2-1212"])
+    st.markdown('<div class="sb-section-label">Daily Wellness Tips</div>', unsafe_allow_html=True)
+    for title, tip in [
+        ("💧 Hydration", "Start with warm water + lemon + jeera. Aim for 8–10 glasses daily."),
+        ("🌅 Morning Ritual", "10 rounds of Surya Namaskar burns ~100 kcal and boosts metabolism."),
+        ("🍛 Meal Timing", "Largest meal at lunch (1–2 PM). Keep dinner light before 8 PM."),
+        ("🌿 Ayurveda", "Haldi + kali mirch daily reduces inflammation. Ashwagandha builds strength."),
+        ("😴 Recovery", "7–9 hrs sleep regulates cortisol, ghrelin and muscle repair hormones."),
+    ]:
+        st.markdown(f'<div class="sb-tip"><strong>{title}</strong>{tip}</div>', unsafe_allow_html=True)
 
-    st.divider()
-    if st.session_state.plans_generated:
-        st.markdown(f'<div class="badge badge-cyan">PLAN ACTIVE</div><div style="font-size:0.78rem;color:#6b7280;margin-top:0.5rem;">{len(st.session_state.qa_pairs)} Q&A exchanges</div>', unsafe_allow_html=True)
-        if st.button("🔄 RESET SESSION"):
-            st.session_state.dietary_plan = None
-            st.session_state.fitness_plan = None
-            st.session_state.qa_pairs = []
-            st.session_state.plans_generated = False
+    if st.session_state.generated:
+        st.markdown('<div class="sb-section-label">Session</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sb-stat"><span class="sb-stat-label">📋 Plan</span><span class="sb-stat-val">ACTIVE</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sb-stat"><span class="sb-stat-label">💬 Q&A</span><span class="sb-stat-val">{len(st.session_state.qa)} chats</span></div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 NEW SESSION"):
+            for k in ["diet_plan","fit_plan","qa","generated"]:
+                st.session_state[k] = None if k != "qa" else []
+            st.session_state.generated = False
             st.rerun()
 
 
 # ─── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="apex-hero">
-    <div class="tag">POWERED BY GROQ AI · NEXT-GEN HEALTH INTELLIGENCE</div>
-    <h1>APEX HEALTH PLANNER</h1>
-    <p>Precision-engineered dietary and fitness protocols calibrated to your unique biometric profile</p>
+<div class="hero-wrap">
+    <div class="hero-eyebrow">🇮🇳 MADE FOR INDIA · POWERED BY GROQ AI</div>
+    <h1 class="hero-title">APEX HEALTH PLANNER</h1>
+    <p class="hero-sub">AI-crafted Indian diet & fitness plans calibrated to your unique body and goals</p>
+    <div class="tricolor-line"></div>
 </div>
-<div class="apex-divider"></div>
 """, unsafe_allow_html=True)
 
-if not grok_api_key:
-    st.error("⚠️ GROQ_API_KEY not found. Please add it to your Streamlit Cloud secrets: Settings → Secrets → add `GROQ_API_KEY = 'xai-...'`")
+if not groq_key:
+    st.error("⚠️ GROQ_API_KEY missing. Go to Streamlit Cloud → App Settings → Secrets and add: GROQ_API_KEY = \"gsk_...\"")
     st.stop()
 
-# Init Grok client
-client = OpenAI(api_key=grok_api_key, base_url="https://api.groq.com/openai/v1")
+client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
 
 
-# ─── Profile Input ─────────────────────────────────────────────────────────────
-st.markdown('<div class="section-header"><div class="icon">👤</div><h2>Biometric Profile</h2></div>', unsafe_allow_html=True)
+# ─── Profile Inputs ────────────────────────────────────────────────────────────
+st.markdown('<div class="sec-head"><div class="sec-head-icon">👤</div><div class="sec-head-title">Your Biometric Profile</div><div class="sec-head-line"></div></div>', unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    age    = st.number_input("AGE", min_value=10, max_value=100, value=28, step=1)
-    height = st.number_input("HEIGHT (cm)", min_value=100.0, max_value=250.0, value=175.0, step=0.5)
-    sex    = st.selectbox("BIOLOGICAL SEX", ["Male", "Female", "Other"])
-with col2:
-    weight   = st.number_input("WEIGHT (kg)", min_value=20.0, max_value=300.0, value=75.0, step=0.5)
-    activity = st.selectbox("ACTIVITY LEVEL", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extremely Active"])
-    dietary_pref = st.selectbox("DIETARY PREFERENCE", ["No Restriction", "Vegetarian", "Vegan", "Keto", "Paleo", "Mediterranean", "Gluten Free", "Low Carb", "Dairy Free"])
-with col3:
-    fitness_goal = st.selectbox("FITNESS GOAL", ["Lose Weight", "Gain Muscle", "Endurance", "Stay Fit", "Strength Training", "Athletic Performance"])
-    health_conditions = st.multiselect("HEALTH CONDITIONS", ["None", "Diabetes", "Hypertension", "High Cholesterol", "PCOS", "Thyroid Issues", "Joint Pain"], default=["None"])
-    supplements = st.multiselect("CURRENT SUPPLEMENTS", ["None", "Protein Powder", "Creatine", "Omega-3", "Vitamins D/B12", "Pre-workout"], default=["None"])
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.markdown('<div class="input-group">', unsafe_allow_html=True)
+    age_in    = st.text_input("Age (years)", value="25", placeholder="e.g. 25")
+    height_in = st.text_input("Height (cm)", value="170", placeholder="e.g. 170")
+    sex       = st.selectbox("Biological Sex", ["Male", "Female", "Other"])
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with c2:
+    st.markdown('<div class="input-group">', unsafe_allow_html=True)
+    weight_in = st.text_input("Weight (kg)", value="70", placeholder="e.g. 70")
+    activity  = st.selectbox("Activity Level", [
+        "Sedentary (Desk job)", "Lightly Active (Walk 1-3 days)",
+        "Moderately Active (Exercise 3-5 days)", "Very Active (Hard exercise 6-7 days)",
+        "Athlete / Physical Labour"
+    ])
+    diet_pref = st.selectbox("Diet Type", [
+        "Non-Vegetarian", "Vegetarian", "Vegan", "Eggetarian",
+        "Jain (No root vegetables)", "Sattvic", "Low Carb Indian", "Diabetic-friendly Indian"
+    ])
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with c3:
+    st.markdown('<div class="input-group">', unsafe_allow_html=True)
+    goal       = st.selectbox("Fitness Goal", [
+        "Weight Loss", "Muscle Gain", "Stay Fit & Healthy",
+        "Strength Training", "Endurance & Stamina", "Athletic Performance"
+    ])
+    conditions = st.multiselect("Health Conditions", [
+        "None", "Diabetes (Type 2)", "Hypertension", "High Cholesterol",
+        "PCOD/PCOS", "Thyroid", "Acidity / IBS", "Anemia", "Joint Pain / Arthritis"
+    ], default=["None"])
+    region     = st.selectbox("Regional Cuisine", [
+        "North Indian", "South Indian", "East Indian (Bengali/Odia)",
+        "West Indian (Gujarati/Marathi)", "Mixed / Pan India"
+    ])
+    st.markdown('</div>', unsafe_allow_html=True)
+
+age    = int(safe_float(age_in, 25))
+height = safe_float(height_in, 170)
+weight = safe_float(weight_in, 70)
 
 
-# ─── Live Biometric Dashboard ──────────────────────────────────────────────────
-bmi, bmi_cat, bmi_col = calculate_bmi(weight, height)
-bmr, tdee = calculate_tdee(weight, height, age, sex, activity)
-ideal_wt  = calculate_ideal_weight(height, sex)
-macros    = macro_split(tdee, fitness_goal)
-wt_diff   = round(weight - ideal_wt, 1)
-wt_status = f"+{wt_diff}kg above ideal" if wt_diff > 0 else f"{abs(wt_diff)}kg below ideal" if wt_diff < 0 else "At ideal weight"
-water_l   = round(weight * 0.033, 1)
+# ─── Biometric Dashboard ───────────────────────────────────────────────────────
+bmi, bmi_cat, bmi_chip = calculate_bmi(weight, height)
+bmr, tdee  = calculate_tdee(weight, height, age, sex, activity)
+ideal_wt   = ideal_weight(height, sex)
+macros     = macro_split(tdee, goal)
+water_l    = round(weight * 0.033, 1)
+wt_diff    = round(weight - ideal_wt, 1)
+wt_label   = f"+{wt_diff} kg above" if wt_diff > 0 else f"{abs(wt_diff)} kg below" if wt_diff < 0 else "At ideal ✓"
 
-st.markdown('<div class="section-header"><div class="icon">📊</div><h2>Live Biometric Analysis</h2></div>', unsafe_allow_html=True)
-m1, m2, m3, m4, m5 = st.columns(5)
-with m1:
-    st.markdown(f'<div class="metric-card"><div class="label">Body Mass Index</div><div class="value">{bmi}<span class="unit">BMI</span></div><div class="sub">{badge(bmi_cat, bmi_col)}</div></div>', unsafe_allow_html=True)
-with m2:
-    st.markdown(f'<div class="metric-card"><div class="label">Basal Metabolic Rate</div><div class="value">{bmr:,}<span class="unit">kcal</span></div><div class="sub" style="color:#6b7280">Resting expenditure</div></div>', unsafe_allow_html=True)
-with m3:
-    st.markdown(f'<div class="metric-card"><div class="label">Daily Energy Target</div><div class="value">{macros["calories"]:,}<span class="unit">kcal</span></div><div class="sub">{badge(fitness_goal.upper(), "cyan")}</div></div>', unsafe_allow_html=True)
-with m4:
-    st.markdown(f'<div class="metric-card"><div class="label">Ideal Body Weight</div><div class="value">{ideal_wt}<span class="unit">kg</span></div><div class="sub" style="color:#6b7280">{wt_status}</div></div>', unsafe_allow_html=True)
-with m5:
-    st.markdown(f'<div class="metric-card"><div class="label">Daily Water Intake</div><div class="value">{water_l}<span class="unit">L</span></div><div class="sub" style="color:#6b7280">{round(water_l*4)} glasses/day</div></div>', unsafe_allow_html=True)
+st.markdown('<div class="sec-head"><div class="sec-head-icon">📊</div><div class="sec-head-title">Live Biometric Analysis</div><div class="sec-head-line"></div></div>', unsafe_allow_html=True)
+
+color_map = {"saffron":"#FF9933","teal":"#00BCD4","gold":"#FFD700","green":"#00e676","red":"#ff5252"}
+cards_data = [
+    ("BMI · Asian Standard", bmi, "BMI", bmi_cat, bmi_chip),
+    ("Basal Metabolic Rate", f"{bmr:,}", "kcal", "Resting burn", "teal"),
+    ("Daily Calorie Target", f"{macros['cals']:,}", "kcal", goal[:15], "saffron"),
+    ("Ideal Body Weight", ideal_wt, "kg", wt_label, "gold"),
+    ("Daily Water", water_l, "litres", f"{round(water_l*4)} glasses", "teal"),
+    ("Daily Protein", macros['protein'], "grams", "Muscle synthesis", "green"),
+]
+for col, (label, val, unit, sub, col_name) in zip(st.columns(6), cards_data):
+    c = color_map.get(col_name, "#FF9933")
+    with col:
+        st.markdown(f"""<div class="m-card">
+            <div class="m-card-glow" style="background:{c};"></div>
+            <div class="m-card-label">{label}</div>
+            <div class="m-card-value" style="color:{c};">{val}<span class="m-card-unit">{unit}</span></div>
+            <div class="m-card-sub">{chip(sub, col_name)}</div>
+        </div>""", unsafe_allow_html=True)
 
 
-# ─── Macro Breakdown ───────────────────────────────────────────────────────────
-st.markdown('<div class="section-header"><div class="icon">🧬</div><h2>Macro Nutrient Protocol</h2></div>', unsafe_allow_html=True)
-mc1, mc2 = st.columns([3, 1])
-with mc1:
-    st.markdown(f"""<div class="plan-card green">
-        <h3>🎯 Target Macros · {macros['calories']:,} kcal/day</h3>
-        {prog_bar('Protein', macros['protein'], 250, '#39ff14')}
-        {prog_bar('Carbohydrates', macros['carbs'], 350, '#00f5ff')}
-        {prog_bar('Fats', macros['fat'], 120, '#bf00ff')}
+# ─── Macros ────────────────────────────────────────────────────────────────────
+st.markdown('<div class="sec-head"><div class="sec-head-icon">🧬</div><div class="sec-head-title">Macro Nutrition Targets</div><div class="sec-head-line"></div></div>', unsafe_allow_html=True)
+
+ma1, ma2 = st.columns([3,1])
+with ma1:
+    st.markdown(f"""<div class="plan-block orange">
+        <div class="plan-block-title">🎯 Daily Macro Targets · {macros['cals']:,} kcal</div>
+        {macrobar('Protein', macros['protein'], 250, '#FF9933')}
+        {macrobar('Carbohydrates', macros['carbs'], 350, '#00BCD4')}
+        {macrobar('Fats', macros['fat'], 120, '#FFD700')}
     </div>""", unsafe_allow_html=True)
-with mc2:
-    prot_pct = round(macros['protein'] * 4 / macros['calories'] * 100)
-    carb_pct = round(macros['carbs']   * 4 / macros['calories'] * 100)
-    fat_pct  = round(macros['fat']     * 9 / macros['calories'] * 100)
-    st.markdown(f"""<div class="metric-card">
-        <div class="label">Split Ratio</div>
-        <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem;">
-            <div style="display:flex;justify-content:space-between;font-size:0.82rem;"><span style="color:#39ff14">● Protein</span><span style="font-family:'JetBrains Mono',monospace">{prot_pct}%</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:0.82rem;"><span style="color:#00f5ff">● Carbs</span><span style="font-family:'JetBrains Mono',monospace">{carb_pct}%</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:0.82rem;"><span style="color:#bf00ff">● Fats</span><span style="font-family:'JetBrains Mono',monospace">{fat_pct}%</span></div>
+
+with ma2:
+    prot_pct = round(macros['protein']*4/macros['cals']*100)
+    carb_pct = round(macros['carbs']*4/macros['cals']*100)
+    fat_pct  = round(macros['fat']*9/macros['cals']*100)
+    st.markdown(f"""<div class="m-card" style="height:100%;">
+        <div class="m-card-label">Split Ratio</div>
+        <div style="margin-top:0.9rem;display:flex;flex-direction:column;gap:0.65rem;">
+            <div style="display:flex;justify-content:space-between;"><span style="font-size:0.8rem;color:#FF9933">● Protein</span><span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#F0F4FF;">{prot_pct}%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="font-size:0.8rem;color:#00BCD4">● Carbs</span><span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#F0F4FF;">{carb_pct}%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="font-size:0.8rem;color:#FFD700">● Fats</span><span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#F0F4FF;">{fat_pct}%</span></div>
         </div>
+        <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,153,51,0.1);font-size:0.72rem;color:#8892A4;">Based on {goal}</div>
     </div>""", unsafe_allow_html=True)
 
-st.markdown("<div class='apex-divider'></div>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
 
-# ─── Generate Plans ────────────────────────────────────────────────────────────
-st.markdown('<div class="section-header"><div class="icon">⚡</div><h2>AI Plan Generation</h2></div>', unsafe_allow_html=True)
-_, gen_col, _ = st.columns([1, 2, 1])
-with gen_col:
-    generate_clicked = st.button("⚡ GENERATE MY APEX PLAN", use_container_width=True)
+# ─── Generate ─────────────────────────────────────────────────────────────────
+st.markdown('<div class="sec-head"><div class="sec-head-icon">⚡</div><div class="sec-head-title">Generate Your AI Plan</div><div class="sec-head-line"></div></div>', unsafe_allow_html=True)
 
-if generate_clicked:
-    conditions_str  = ", ".join([c for c in health_conditions if c != "None"]) or "None"
-    supplements_str = ", ".join([s for s in supplements if s != "None"]) or "None"
+_, gc, _ = st.columns([1,2,1])
+with gc:
+    gen = st.button("⚡ GENERATE MY APEX PLAN")
 
-    user_profile = f"""
-BIOMETRIC PROFILE:
-- Age: {age} | Sex: {sex} | Weight: {weight}kg | Height: {height}cm
-- BMI: {bmi} ({bmi_cat}) | BMR: {bmr} kcal | TDEE: {tdee} kcal | Ideal Weight: {ideal_wt}kg
-
-GOALS & PREFERENCES:
-- Primary Goal: {fitness_goal} | Activity: {activity}
-- Diet: {dietary_pref} | Health Conditions: {conditions_str} | Supplements: {supplements_str}
-
-MACRO TARGETS:
-- Calories: {macros['calories']} kcal | Protein: {macros['protein']}g | Carbs: {macros['carbs']}g | Fats: {macros['fat']}g
-"""
+if gen:
+    cond_str = ", ".join([c for c in conditions if c != "None"]) or "None"
+    profile  = f"""Age:{age}|Sex:{sex}|Weight:{weight}kg|Height:{height}cm|BMI:{bmi}({bmi_cat})|BMR:{bmr}|TDEE:{tdee}|IdealWT:{ideal_wt}kg
+Goal:{goal}|Activity:{activity}|Diet:{diet_pref}|Region:{region}|Conditions:{cond_str}
+Macros:{macros['cals']}kcal|P:{macros['protein']}g|C:{macros['carbs']}g|F:{macros['fat']}g"""
 
     try:
-        with st.spinner("🍽️ Generating nutrition protocol..."):
-            dietary_plan = ask_grok(
-                client, model_choice,
-                f"""You are an elite sports nutritionist. Create a highly detailed personalized meal plan.
-Respect dietary preference: {dietary_pref}. Account for health conditions: {conditions_str}.
-Format: Pre-Workout, Breakfast, Mid-Morning Snack, Lunch, Afternoon Snack, Post-Workout, Dinner.
-For each meal list: food items with portions (grams), estimated macros, and prep notes.
-Target: {macros['calories']} kcal, {macros['protein']}g protein, {macros['carbs']}g carbs, {macros['fat']}g fat.
-Include hydration protocol and supplement timing. Be specific and scientific.""",
-                user_profile
-            )
+        with st.spinner("🍛 Crafting your Indian nutrition plan..."):
+            diet_plan = ask_groq(client,
+                f"""You are India's top sports nutritionist. Create a complete Indian meal plan.
+Diet: {diet_pref} | Region: {region} | Conditions: {cond_str} | Goal: {goal}
+Targets: {macros['cals']} kcal | Protein:{macros['protein']}g | Carbs:{macros['carbs']}g | Fat:{macros['fat']}g
 
-        with st.spinner("💪 Generating training program..."):
-            fitness_plan = ask_grok(
-                client, model_choice,
-                f"""You are an elite strength and conditioning coach. Create a science-backed 7-day training program.
-Goal: {fitness_goal} | Activity Level: {activity} | Conditions: {conditions_str}.
-Include: rest days, warm-up, main exercises with sets/reps/rest/RPE, cool-down.
-Add progressive overload strategy, deload guidance, form cues for key lifts.
-Be specific and actionable.""",
-                user_profile
-            )
+Format exactly as:
+🌅 EARLY MORNING (6-7 AM): warm water with lemon/jeera, soaked almonds, tulsi chai etc.
+🍳 BREAKFAST (8-9 AM): specific Indian dish with grams and macros
+🥗 MID-MORNING (11 AM): light Indian snack
+🍛 LUNCH (1-2 PM): dal + sabzi + roti/rice + salad with exact grams
+☕ EVENING SNACK (4-5 PM): roasted chana/makhana/sprouts/chaas etc.
+🏋️ PRE/POST WORKOUT: what to eat and when
+🌙 DINNER (7-8 PM): light Indian meal with portions
+💊 HYDRATION & SUPPLEMENTS: desi alternatives (haldi doodh, jeera water, etc.)
 
-        st.session_state.dietary_plan    = dietary_plan
-        st.session_state.fitness_plan    = fitness_plan
-        st.session_state.plans_generated = True
-        st.session_state.qa_pairs        = []
-        st.success("✅ APEX plan generated successfully!")
+Use real Indian foods: dal, sabzi, roti, rice, idli, dosa, poha, upma, rajma, chole, paneer, sprouts, makhana, chaas, lassi, etc.
+Give exact grams for each item. Respect {diet_pref} strictly. Adapt for {cond_str}.""",
+                profile)
+
+        with st.spinner("💪 Building your training program..."):
+            fit_plan = ask_groq(client,
+                f"""You are an elite Indian fitness coach. Create a 7-day training program.
+Goal:{goal}|Activity:{activity}|Age:{age}|Weight:{weight}kg|Conditions:{cond_str}
+
+For each day provide:
+Day name + workout type (or rest/active recovery)
+Warm-up: include Surya Namaskar where relevant
+Main workout: exercise name, sets × reps, rest time, RPE (1-10)
+Cool-down: yoga asanas (Shavasana, Balasana, etc.)
+Recovery tip: haldi doodh, ashwagandha, abhyanga, pranayama etc.
+
+Also include: 4-week progressive overload plan, home/bodyweight alternatives for gym exercises.
+Adapt all exercises for conditions: {cond_str}.""",
+                profile)
+
+        st.session_state.diet_plan = diet_plan
+        st.session_state.fit_plan  = fit_plan
+        st.session_state.generated = True
+        st.session_state.qa        = []
+        st.success("✅ Your APEX Indian Health Plan is ready!")
         st.rerun()
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
 
-# ─── Display Plans ─────────────────────────────────────────────────────────────
-if st.session_state.plans_generated:
-    st.markdown("<div class='apex-divider'></div>", unsafe_allow_html=True)
-    st.markdown('<div class="section-header"><div class="icon">📋</div><h2>Your APEX Protocol</h2></div>', unsafe_allow_html=True)
+# ─── Show Plans ────────────────────────────────────────────────────────────────
+if st.session_state.generated:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="sec-head"><div class="sec-head-icon">📋</div><div class="sec-head-title">Your APEX Protocol</div><div class="sec-head-line"></div></div>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3 = st.tabs(["🍽️  NUTRITION PROTOCOL", "💪  TRAINING PROGRAM", "💬  AI HEALTH ASSISTANT"])
+    t1, t2, t3 = st.tabs(["🍛  INDIAN DIET PLAN", "💪  TRAINING PROGRAM", "💬  AI HEALTH ASSISTANT"])
 
-    with tab1:
-        st.markdown(f"""<div class="plan-card green">
-            <h3>🧬 Personalized Nutrition Protocol</h3>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                {badge(dietary_pref, 'green')} {badge(f"{macros['calories']} KCAL", 'cyan')} {badge(fitness_goal.upper(), 'purple')}
-            </div></div>""", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Daily Protein", f"{macros['protein']}g")
-        c2.metric("Daily Carbs",   f"{macros['carbs']}g")
-        c3.metric("Daily Fats",    f"{macros['fat']}g")
-        with st.expander("📋 Full Nutrition Protocol", expanded=True):
-            st.markdown(st.session_state.dietary_plan)
-        st.markdown("""<div class="plan-card green" style="margin-top:1rem;">
-            <h3>⚠️ Nutrition Guidelines</h3>
-            <div style="font-size:0.85rem;color:#9ca3af;line-height:1.8;">
-            • Spread water intake evenly throughout the day<br>
-            • Eat within 30–60 min of waking to kick-start metabolism<br>
-            • Include protein in every meal for muscle synthesis<br>
-            • Avoid processed sugars and trans fats<br>
-            • Consult a licensed dietitian before major changes
-            </div></div>""", unsafe_allow_html=True)
-
-    with tab2:
-        st.markdown(f"""<div class="plan-card purple">
-            <h3>⚡ Performance Training Program</h3>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                {badge(fitness_goal.upper(), 'purple')} {badge(activity.upper(), 'cyan')} {badge('7-DAY PROGRAM', 'green')}
-            </div></div>""", unsafe_allow_html=True)
-        with st.expander("🏋️ Full Training Program", expanded=True):
-            st.markdown(st.session_state.fitness_plan)
-        st.markdown("""<div class="plan-card purple" style="margin-top:1rem;">
-            <h3>💡 Performance Tips</h3>
-            <div style="font-size:0.85rem;color:#9ca3af;line-height:1.8;">
-            • Progressively overload every 1–2 weeks<br>
-            • Prioritize 7–9 hours sleep for recovery<br>
-            • Deload every 4–6 weeks to prevent overtraining<br>
-            • Dynamic warm-up before; static stretch after<br>
-            • Consult a certified trainer before advanced exercises
+    with t1:
+        st.markdown(f"""<div class="plan-block orange">
+            <div class="plan-block-title">🍛 Personalized Indian Nutrition Protocol</div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">{chip(diet_pref,'saffron')} {chip(region,'gold')} {chip(f"{macros['cals']} KCAL",'teal')} {chip(goal.upper(),'green')}</div>
+        </div>""", unsafe_allow_html=True)
+        r1, r2, r3 = st.columns(3)
+        r1.metric("Daily Protein", f"{macros['protein']}g")
+        r2.metric("Daily Carbs",   f"{macros['carbs']}g")
+        r3.metric("Daily Fats",    f"{macros['fat']}g")
+        with st.expander("🍛 View Full Indian Diet Plan", expanded=True):
+            st.markdown(st.session_state.diet_plan)
+        st.markdown("""<div class="plan-block orange" style="margin-top:1rem;">
+            <div class="plan-block-title">🌿 Indian Nutrition Wisdom</div>
+            <div style="font-size:0.85rem;color:#8892A4;line-height:1.85;">
+            🫙 Use cold-pressed oils — mustard, coconut, groundnut instead of refined oil<br>
+            🌾 Choose whole grains — multigrain atta, hand-pounded rice, millets (ragi, jowar, bajra)<br>
+            🥛 Homemade curd/chaas daily — probiotics for gut health and digestion<br>
+            🌿 Haldi + kali mirch (turmeric + black pepper) in every meal — powerful anti-inflammatory<br>
+            🕗 Eat with your circadian rhythm — largest meal at lunch, lightest before 8 PM
             </div></div>""", unsafe_allow_html=True)
 
-    with tab3:
-        st.markdown("""<div class="plan-card" style="border-color:rgba(0,245,255,0.2);margin-bottom:1.25rem;">
-            <h3 style="color:#00f5ff;">🤖 APEX AI Health Assistant</h3>
-            <div style="font-size:0.84rem;color:#9ca3af;">
-            Ask anything about your nutrition, training, recovery, or supplements.
-            The AI has full context of your biometric profile and generated plans.
+    with t2:
+        st.markdown(f"""<div class="plan-block teal-b">
+            <div class="plan-block-title">⚡ 7-Day Training Program</div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">{chip(goal.upper(),'teal')} {chip('7-DAY PLAN','green')} {chip(activity.split('(')[0].strip().upper(),'saffron')}</div>
+        </div>""", unsafe_allow_html=True)
+        with st.expander("🏋️ View Full Training Program", expanded=True):
+            st.markdown(st.session_state.fit_plan)
+        st.markdown("""<div class="plan-block teal-b" style="margin-top:1rem;">
+            <div class="plan-block-title">🌿 Ayurvedic Recovery Protocol</div>
+            <div style="font-size:0.85rem;color:#8892A4;line-height:1.85;">
+            🥛 Haldi doodh (golden milk) post-workout — curcumin reduces muscle inflammation fast<br>
+            🌿 Ashwagandha (300–500mg with warm milk) — reduces cortisol, boosts testosterone naturally<br>
+            💆 Abhyanga (sesame oil self-massage) on rest days — reduces DOMS and improves circulation<br>
+            🧘 Anulom-Vilom pranayama (10 min daily) — improves VO2 max and mental focus<br>
+            😴 Sleep before 10:30 PM — aligns with natural melatonin cycle for optimal recovery
+            </div></div>""", unsafe_allow_html=True)
+
+    with t3:
+        st.markdown("""<div class="plan-block orange" style="margin-bottom:1.25rem;">
+            <div class="plan-block-title">🤖 APEX AI Health Assistant</div>
+            <div style="font-size:0.84rem;color:#8892A4;line-height:1.6;">
+            Ask anything about your Indian diet plan, workout, Ayurvedic alternatives, ingredient swaps, 
+            festival eating, travel meals, or goal-specific advice. APEX knows your complete profile.
             </div></div>""", unsafe_allow_html=True)
 
         with st.form("qa_form", clear_on_submit=True):
-            q1, q2 = st.columns([5, 1])
-            with q1:
-                question = st.text_input("", placeholder="e.g. Can I swap chicken with tofu? Best pre-workout meal?", label_visibility="collapsed")
-            with q2:
-                submitted = st.form_submit_button("→ ASK", use_container_width=True)
+            qc1, qc2 = st.columns([5,1])
+            with qc1:
+                q = st.text_input("", placeholder="e.g. What to eat during Navratri fast? Can I have biryani on cheat day?", label_visibility="collapsed")
+            with qc2:
+                ask_btn = st.form_submit_button("ASK →", use_container_width=True)
 
-        if submitted and question:
-            with st.spinner("🧠 Processing..."):
+        if ask_btn and q:
+            with st.spinner("🧠 Thinking..."):
                 try:
-                    context = f"User profile + plans:\n\nDietary Plan:\n{st.session_state.dietary_plan}\n\nFitness Plan:\n{st.session_state.fitness_plan}"
-                    answer  = ask_grok(
-                        client, model_choice,
-                        "You are APEX — an elite AI health and fitness advisor. Answer questions about the user's personalized plans. Be specific, evidence-based, and concise.",
-                        f"{context}\n\nUser Question: {question}"
-                    )
-                    st.session_state.qa_pairs.append((question, answer))
+                    ctx = f"Diet:\n{st.session_state.diet_plan}\n\nFitness:\n{st.session_state.fit_plan}"
+                    ans = ask_groq(client,
+                        "You are APEX — India's top AI health advisor. Give specific, practical advice using Indian food and fitness context. Suggest desi alternatives, Ayurvedic tips, and reference the user's exact plan.",
+                        f"{ctx}\n\nQuestion: {q}")
+                    st.session_state.qa.append((q, ans))
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
 
-        for i, (q, a) in enumerate(reversed(st.session_state.qa_pairs)):
-            idx = len(st.session_state.qa_pairs) - i
+        for i, (question, answer) in enumerate(reversed(st.session_state.qa)):
+            n = len(st.session_state.qa) - i
             st.markdown(f"""
-            <div class="chat-msg chat-user"><div class="chat-label">USER · #{idx}</div>{q}</div>
-            <div class="chat-msg chat-ai"><div class="chat-label">⚡ APEX AI</div>{a}</div>
+            <div class="chat-bubble chat-user"><div class="chat-lbl">You · #{n}</div>{question}</div>
+            <div class="chat-bubble chat-ai"><div class="chat-lbl">⚡ APEX AI</div>{answer}</div>
             """, unsafe_allow_html=True)
 
+
 # ─── Footer ────────────────────────────────────────────────────────────────────
-st.markdown("<div class='apex-divider'></div>", unsafe_allow_html=True)
-st.markdown("""<div style="text-align:center;padding:1rem 0 0.5rem;font-family:'JetBrains Mono',monospace;
-    font-size:0.58rem;letter-spacing:0.25em;color:#374151;">
-    APEX · AI HEALTH INTELLIGENCE · POWERED BY GROQ AI &nbsp;|&nbsp;
-    FOR INFORMATIONAL PURPOSES ONLY · NOT MEDICAL ADVICE
-</div>""", unsafe_allow_html=True)
+st.markdown("""
+<div style="text-align:center;padding:2rem 0 0.5rem;">
+    <div style="height:3px;border-radius:100px;background:linear-gradient(90deg,transparent,#FF9933,#fff,#138808,transparent);margin:0 auto 1rem;width:200px;opacity:0.5;"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;letter-spacing:0.3em;color:#3D4A5C;">
+        APEX · MADE FOR INDIA 🇮🇳 · GROQ + LLaMA 3.3 70B &nbsp;|&nbsp; NOT MEDICAL ADVICE · CONSULT A QUALIFIED DOCTOR
+    </div>
+</div>
+""", unsafe_allow_html=True)
