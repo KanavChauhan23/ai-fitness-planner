@@ -233,17 +233,17 @@ with st.sidebar:
     </div>""", unsafe_allow_html=True)
 
     # API key loaded from Streamlit secrets
-    grok_api_key = st.secrets.get("GROK_API_KEY", "")
+    grok_api_key = st.secrets.get("GROQ_API_KEY", "")
     if grok_api_key:
         st.markdown('<div style="background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);border-radius:8px;padding:0.65rem;font-size:0.78rem;color:#39ff14;margin:0.5rem 0;">✓ Systems Online</div>', unsafe_allow_html=True)
     else:
         st.markdown("""<div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.3);
             border-radius:8px;padding:0.75rem;font-size:0.78rem;color:#ff6b00;margin:0.5rem 0;">
-            ⚠️ GROK_API_KEY not found in Streamlit secrets</div>""", unsafe_allow_html=True)
+            ⚠️ GROQ_API_KEY not found in Streamlit secrets</div>""", unsafe_allow_html=True)
 
     st.divider()
     st.markdown('<div style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;letter-spacing:0.2em;color:#6b7280;text-transform:uppercase;margin-bottom:0.75rem;">⚙️ Model Config</div>', unsafe_allow_html=True)
-    model_choice = st.selectbox("Model", ["grok-3-mini", "grok-3", "grok-2-1212"])
+    model_choice = st.selectbox("Model", ["llama-3.3-70b-versatile", "grok-3", "grok-2-1212"])
 
     st.divider()
     if st.session_state.plans_generated:
@@ -259,7 +259,7 @@ with st.sidebar:
 # ─── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="apex-hero">
-    <div class="tag">POWERED BY GROK AI · NEXT-GEN HEALTH INTELLIGENCE</div>
+    <div class="tag">POWERED BY GROQ AI · NEXT-GEN HEALTH INTELLIGENCE</div>
     <h1>APEX HEALTH PLANNER</h1>
     <p>Precision-engineered dietary and fitness protocols calibrated to your unique biometric profile</p>
 </div>
@@ -267,11 +267,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if not grok_api_key:
-    st.error("⚠️ GROK_API_KEY not found. Please add it to your Streamlit Cloud secrets: Settings → Secrets → add `GROK_API_KEY = 'xai-...'`")
+    st.error("⚠️ GROQ_API_KEY not found. Please add it to your Streamlit Cloud secrets: Settings → Secrets → add `GROQ_API_KEY = 'xai-...'`")
     st.stop()
 
 # Init Grok client
-client = OpenAI(api_key=grok_api_key, base_url="https://api.x.ai/v1")
+client = OpenAI(api_key=grok_api_key, base_url="https://api.groq.com/openai/v1")
 
 
 # ─── Profile Input ─────────────────────────────────────────────────────────────
@@ -486,6 +486,6 @@ if st.session_state.plans_generated:
 st.markdown("<div class='apex-divider'></div>", unsafe_allow_html=True)
 st.markdown("""<div style="text-align:center;padding:1rem 0 0.5rem;font-family:'JetBrains Mono',monospace;
     font-size:0.58rem;letter-spacing:0.25em;color:#374151;">
-    APEX · AI HEALTH INTELLIGENCE · POWERED BY GROK AI &nbsp;|&nbsp;
+    APEX · AI HEALTH INTELLIGENCE · POWERED BY GROQ AI &nbsp;|&nbsp;
     FOR INFORMATIONAL PURPOSES ONLY · NOT MEDICAL ADVICE
 </div>""", unsafe_allow_html=True)
