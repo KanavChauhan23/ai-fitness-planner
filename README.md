@@ -45,7 +45,7 @@ Unlike generic Western fitness apps, APEX understands:
 
 ## 🖼️ Screenshots
 
-> Live at **[Check here!](https://apex-fitness-ai.streamlit.app)**
+> Live at website: **[Check here!](https://apex-fitness-ai.streamlit.app)**
 
 ---
 
