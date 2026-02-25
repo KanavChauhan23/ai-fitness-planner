@@ -185,6 +185,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 Made with ❤️ for India 🇮🇳
 
-**[⚡ Try APEX Live](https://apex-fitness-ai.streamlit.app)**
+**[⚡APEX FITNESS PLANNER⚡](https://apex-fitness-ai.streamlit.app)**
 
 </div>
