@@ -10,7 +10,7 @@
 
 ### 🇮🇳 AI-powered Indian Diet & Fitness Planner — Built for Bharat
 
-**[🚀 Live Demo](https://apex-fitness-ai.streamlit.ap)**
+**[Live +](https://apex-fitness-ai.streamlit.ap)**
 
 </div>
 
@@ -45,7 +45,7 @@ Unlike generic Western fitness apps, APEX understands:
 
 ## 🖼️ Screenshots
 
-> Live at **[apex-fitness-ai.streamlit.app](https://apex-fitness-ai.streamlit.app)**
+> Live at **[Check here!](https://apex-fitness-ai.streamlit.app)**
 
 ---
 
